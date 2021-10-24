@@ -22,4 +22,4 @@ def show_html(request):
 def post_test(request):
     print(request.POST)
 
-    return HttpResponse('hello')
+    return HttpResponse('hello, world')
