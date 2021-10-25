@@ -1,4 +1,5 @@
 from django.shortcuts import HttpResponse, render
+from .models import iCourse
 
 # Create your views here.
 
@@ -13,6 +14,12 @@ def receive_data(request):
     print(post_data)
 
     return HttpResponse(json.dumps(post_data))
+
+
+def get_data(request):
+    """从数据库中取数据返回"""
+    watched = iCourse.objects.all()
+    return HttpResponse(watched)
 
 
 def show_html(request):
