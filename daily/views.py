@@ -16,7 +16,8 @@ def receive_data(request):
     post_data = json.loads(post_data)
 
     today = timezone.now().strftime('%Y%m%d')
-    course_data = post_data['result']
+    course_name = post_data['courseName']
+    course_data = post_data['whatched']
     pushup_data = post_data['pushup']
     data_str = ','.join(map(str, course_data))
 
@@ -25,9 +26,9 @@ def receive_data(request):
     course_cnt = course_filter.count()
     pushup_cnt = pushup_filter.count()
     if course_cnt > 0:
-        course_filter.update(**{'today': today, 'watched': data_str})
+        course_filter.update(**{'today': today, 'watched': data_str, 'name': course_name})
     else:
-        i = iCourse(today=today, watched=data_str)
+        i = iCourse(today=today, watched=data_str, name=course_name)
         i.save()
 
     if pushup_cnt > 0:
@@ -42,7 +43,7 @@ def receive_data(request):
 def get_data(request):
     """从数据库中取数据返回"""
     watched = iCourse.objects.all()
-    watched = watched.order_by('-today')[0]
+    watched = watched.order_by('-today')[0].watched
     return HttpResponse(watched)
 
 
