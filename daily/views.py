@@ -2,7 +2,7 @@
 
 from django.utils import timezone
 from django.shortcuts import HttpResponse, render
-from .models import iCourse
+from .models import iCourse, Pushup
 
 # Create your views here.
 
@@ -14,19 +14,27 @@ def receive_data(request):
     import json
     post_data = request.body
     post_data = json.loads(post_data)
-    print(post_data)
 
     today = timezone.now().strftime('%Y%m%d')
     course_data = post_data['result']
+    pushup_data = post_data['pushup']
     data_str = ','.join(map(str, course_data))
 
-    filter_result = iCourse.objects.filter(today=today)
-    n = filter_result.count()
-    if n > 0:
-        filter_result.update(**{'today': today, 'watched': data_str})
+    course_filter = iCourse.objects.filter(today=today)
+    pushup_filter = Pushup.objects.filter(today=today)
+    course_cnt = course_filter.count()
+    pushup_cnt = pushup_filter.count()
+    if course_cnt > 0:
+        course_filter.update(**{'today': today, 'watched': data_str})
     else:
         i = iCourse(today=today, watched=data_str)
         i.save()
+
+    if pushup_cnt > 0:
+        pushup_filter.update(**{'today': today, 'finish_num': pushup_data})
+    else:
+        p = Pushup(today=today, finish_num=pushup_data)
+        p.save()
     
     return HttpResponse(json.dumps(post_data))
 
