@@ -2,6 +2,7 @@
 
 from django.utils import timezone
 from django.shortcuts import HttpResponse, render
+from django.http import JsonResponse
 from .models import iCourse, Pushup
 
 # Create your views here.
@@ -42,13 +43,17 @@ def receive_data(request):
 
 def get_data(request):
     """从数据库中取数据返回"""
+    ret = dict()
     watched = iCourse.objects.all()
-    watched = watched.order_by('-today')[0].watched
-    return HttpResponse(watched)
+    course = watched.order_by('-today')[0]
+    pushup = Pushup.objects.all()
+    pushup = pushup.order_by('-today')
 
-
-def show_html(request):
-    return render(request, 'daily/index.html')
+    ret['course'] = {'date': course.today, 'watched': course.watched}
+    ret['pushup'] = []
+    for p in pushup:
+        ret['pushup'].append({'date': p.today, 'num': p.finish_num})
+    return JsonResponse(ret)
 
 
 def post_test(request):
