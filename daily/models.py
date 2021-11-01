@@ -17,4 +17,4 @@ class Pushup(models.Model):
     finish_num = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.today + ' - ' + self.finish_num
+        return self.today + ' - ' + str(self.finish_num)
