@@ -47,11 +47,17 @@ def get_data(request):
     watched = iCourse.objects.all()
     course = watched.order_by('-today')[0]
     pushup = Pushup.objects.all()
-    pushup = pushup.order_by('today')[-30:]
+    pushup = pushup.order_by('today')
 
     ret['course'] = {'date': course.today, 'watched': course.watched}
     ret['pushup'] = []
-    for p in pushup:
+    limit = 30
+    count = len(pushup)
+    if count > limit:
+        start_index = count - limit
+    else:
+        start_index = 0
+    for p in pushup[start_index:]:
         ret['pushup'].append({'date': p.today, 'num': p.finish_num})
     return JsonResponse(ret)
 
