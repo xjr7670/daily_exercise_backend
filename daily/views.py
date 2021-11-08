@@ -47,7 +47,7 @@ def get_data(request):
     watched = iCourse.objects.all()
     course = watched.order_by('-today')[0]
     pushup = Pushup.objects.all()
-    pushup = pushup.order_by('today')[:30]
+    pushup = pushup.order_by('today')[-30:]
 
     ret['course'] = {'date': course.today, 'watched': course.watched}
     ret['pushup'] = []
