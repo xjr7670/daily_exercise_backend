@@ -1,11 +1,14 @@
 # -*- coding:utf-8 -*-
 
+import os
 from django.utils import timezone
 from django.shortcuts import HttpResponse, render
 from django.http import JsonResponse
+from django.conf import settings
 from .models import iCourse, Pushup
 
 # Create your views here.
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "exercise.settings")
 
 def index(request):
     return HttpResponse("Hello, world. You're at the daily exercise index.")
@@ -66,3 +69,67 @@ def post_test(request):
     print(request.POST)
 
     return HttpResponse('hello, world')
+
+
+def merge_pdf(file_list, out_file):
+    from PyPDF2 import PdfFileWriter, PdfFileReader
+    pdf_writer = PdfFileWriter()
+    for in_file in file_list:
+        pdf_reader = PdfFileReader(open(in_file, 'rb'))
+        num_pages = pdf_reader.getNumPages()
+        for index in range(0, num_pages):
+            page_obj = pdf_reader.getPage(index)
+            pdf_writer.addPage(page_obj)
+        pdf_writer.write(open(out_file, 'wb'))
+
+    return out_file
+
+
+def delete_dir(dir_path):
+    """删除文件夹"""
+
+
+def get_static_file(fname):
+    import random
+    import shutil
+    import zipfile
+    full_name = os.path.join(settings.BASE_DIR, 'static', 'upload', fname)
+    if full_name.endswith('zip'):
+        zf = zipfile.ZipFile(full_name, 'r')
+        random_id = str(random.randint(10, 100))
+        tmp_dir = os.path.join('/tmp', random_id)
+        os.mkdir(tmp_dir)
+        tmp_file_list = []
+        for name in zf.namelist():
+            if not name.endswith('.pdf'):
+                continue
+            zf.extract(name, tmp_dir)
+            tmp_file_list.append(os.path.join(tmp_dir, name))
+        else:
+            result = merge_pdf(tmp_file_list, 
+                               os.path.join(settings.BASE_DIR,
+                                            'static', 
+                                            'upload',
+                                            'merged'+random_id+'.pdf'))
+            shutil.rmtree(tmp_dir)
+            return result
+    else:
+        return 'There is not a zip file you have uploaded!'
+
+
+def upload(request):
+    if request.method == 'POST':
+        # 获取对象
+        obj = request.FILES.get('fafafa')
+        f = open(os.path.join(settings.BASE_DIR, 
+                              'static', 'upload', obj.name), 
+                'wb')
+        for chunk in obj.chunks():
+            f.write(chunk)
+        f.close()
+        result = get_static_file(obj.name)
+        resp = HttpResponse(open(result, 'rb'))
+        resp['Content-Type'] = 'application/oct-stream'
+        resp['Content-Disposition'] = 'attachment;filename='+result.split('/')[-1]
+        return  resp
+    return HttpResponse('failed')
