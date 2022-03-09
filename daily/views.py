@@ -52,7 +52,11 @@ def get_data(request):
     pushup = Pushup.objects.all()
     pushup = pushup.order_by('today')
 
-    ret['course'] = {'date': course.today, 'watched': course.watched}
+    ret['course'] = {
+        'date': course.today, 
+        'watched': course.watched,
+        'name': course.name
+    }
     ret['pushup'] = []
     limit = 30
     count = len(pushup)
