@@ -21,7 +21,7 @@ def receive_data(request):
 
     today = timezone.now().strftime('%Y%m%d')
     course_name = post_data['courseName']
-    course_data = post_data['whatched']
+    course_data = post_data['watched']
     pushup_data = post_data['pushup']
     data_str = ','.join(map(str, course_data))
 
