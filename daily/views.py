@@ -25,16 +25,15 @@ def receive_data(request):
     pushup_data = post_data['pushup']
     data_str = ','.join(map(str, course_data))
 
-    course_filter = iCourse.objects.filter(today=today)
-    pushup_filter = Pushup.objects.filter(today=today)
-    course_cnt = course_filter.count()
-    pushup_cnt = pushup_filter.count()
-    if course_cnt > 0:
-        course_filter.update(**{'today': today, 'watched': data_str, 'name': course_name})
-    else:
-        i = iCourse(today=today, watched=data_str, name=course_name)
-        i.save()
+    course_name2 = post_data['courseName2']
+    course_data2 = post_data['watched2']
+    data_str2 = ','.join(map(str, course_data2))
 
+    update_course(course_name, today, data_str)
+    update_course(course_name2, today, data_str2)
+
+    pushup_filter = Pushup.objects.filter(today=today)
+    pushup_cnt = pushup_filter.count()
     if pushup_cnt > 0:
         pushup_filter.update(**{'today': today, 'finish_num': pushup_data})
     else:
@@ -44,19 +43,31 @@ def receive_data(request):
     return HttpResponse(json.dumps(post_data))
 
 
+def update_course(cname, today, data_str):
+    course_filter = iCourse.objects.filter(name=cname)
+    pushup_filter = Pushup.objects.filter(today=today)
+    course_cnt = course_filter.count()
+    if course_cnt > 0:
+        course_filter.update(**{'today': today, 'watched': data_str, 'name': cname})
+    else:
+        i = iCourse(today=today, watched=data_str, name=cname)
+        i.save()  
+
+
 def get_data(request):
     """从数据库中取数据返回"""
     ret = dict()
     watched = iCourse.objects.all()
-    course = watched.order_by('-today')[0]
+    course = watched.order_by('-today')[:2]
     pushup = Pushup.objects.all()
     pushup = pushup.order_by('today')
 
-    ret['course'] = {
-        'date': course.today, 
-        'watched': course.watched,
-        'name': course.name
-    }
+    ret['course'] = dict()
+    for c in course:
+        ret['course'][c.name] = {
+                'today': c.today,
+                'watched': c.watched,
+        }
     ret['pushup'] = []
     limit = 30
     count = len(pushup)
