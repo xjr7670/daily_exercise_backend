@@ -56,9 +56,17 @@ def update_course(cname, today, data_str):
 
 def get_data(request):
     """从数据库中取数据返回"""
+
+    import json
+    post_data = request.body
+    post_data = json.loads(post_data)
+
+    cname1 = post_data['courseName']
+    cname2 = post_data['courseName2']
+
     ret = dict()
     watched = iCourse.objects.all()
-    course = watched.order_by('-today')[:2]
+    course = map(get_watched_data, [cname1, cname2])
     pushup = Pushup.objects.all()
     pushup = pushup.order_by('today')
 
@@ -78,6 +86,10 @@ def get_data(request):
     for p in pushup[start_index:]:
         ret['pushup'].append({'date': p.today, 'num': p.finish_num})
     return JsonResponse(ret)
+
+
+def get_watched_data(cname):
+    return iCourse.objects.filter(name=cname).order_by('-today')[0]
 
 
 def post_test(request):
